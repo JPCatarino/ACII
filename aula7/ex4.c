@@ -10,7 +10,7 @@ void main(void){
     IEC0bits.T1IE = 1;
     IFS0bits.T1IF = 0;
 
-    T3CONbits.TCKPS = 32;
+    T3CONbits.TCKPS = 5;
     PR3 = 62499;
     TMR3 = 0;
     T3CONbits.TON = 1;
