@@ -36,3 +36,33 @@ void config_interrupts(){
     IFS0bits.U1RXIF = 0;
     IES0bits.U1RXIE = 1;
 }
+
+// 2 funções normalmente usadas são a getc() para receber um carater e putc() para transmitir um carater
+
+void putc(char byte2send){
+    // 1º passo: Esperar que o FIFO esteja vazio
+    while(U1STAbits.UTXBF == 1);
+    // 2º passo: Colocar carater no registo de transmissão
+    U1TXREG = byte2send;
+}
+
+char getc(void){
+    // 1º passo: Dar reset a flag de erro
+    if(U1STAbits.OERR == 1) U1STAbits.OERR = 0;
+    // 2º passo: Esperar que o FIFO esteja disponivel para receber dados
+    while(U1STAbits.URXDA == 0);
+    // 3º passo: Returnar o caracter no buffer de receção 
+    return U1RXREG;
+}
+
+// uma função que pode ser util é a de transmitir uma string
+
+void putString(char *str)
+{
+    unsigned int i = 0;
+	while(str[i] != '\0'){
+        // Usar função putc() para ir pondo cada carater da string até chegar ao final
+        putc(str[i]);
+        i++;
+    }
+}
