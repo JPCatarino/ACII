@@ -50,6 +50,42 @@ void config_timers(void){
     PR3 = 41666;
     TMR3 = 0;
     T3CONbits.TON = 1;
+
+    // No teste pode ser pedido para configurar um módulo OC (Output Compare) para gerar um PWM
+    // A seguir estão as instruções necessárias para configurar o módulo
+    // O bom funcionamento pode ser verificado através de um osciloscópio.
+    // Vamos configurar um OC com base no timer3 de 120hz, com um duty-cycle de 40%
+
+    // 1º passo - Configurar o bit OCM do OCxCON com um dos seguintes valores:
+    // 7 = PWM mode on OCx; Fault pin enabled
+    // 6 = PWM mode on OCx; Fault pin disabled
+    // 5 = Initialize OCx pin low; generate continuous output pulses on OCx pin
+    // 4 = Initialize OCx pin low; generate single output pulse on OCx pin
+    // 3 = Compare event toggles OCx pin
+    // 2 = Initialize OCx pin high; compare event forces OCx pin low
+    // 1 = Initialize OCx pin low; compare event forces OCx pin high
+    // 0 = Output compare peripheral is disabled but continues to draw current
+
+    // Neste caso como queremos gerar um PWM, vamos atribuir o valor 6
+    OC1CONbits.OCM = 6;
+
+    // 2º passo - Escolher o timer base, usando o bit OCTSEL do conjunto OCxCON com um dos valores seguintes:
+    // 1 = Timer3 is the clock source for this Output Compare module
+    // 0 = Timer2 is the clock source for this Output Compare module
+
+    // Neste caso vai ser usado o timer3
+    OC1CONbits.OCTSEL = 1;
+
+    // 3º passo - Calcular a constante OCxRS que é dado por ((PRx + 1)*dutycycle)/100
+    // É de notar que podemos mudar este valor sempre que necessário durante a execução do programa.
+    OC1RS = 16666;
+
+    // 4º passo - Ativar o módulo
+    OC1CONbits.ON = 1;
+
+    // DISCLAIMER: Não me foi possível testar esta configuração portanto não sei até que ponto 
+    // os valores estão correctos, no entanto são estes os passos que tem de seguir ;))
+
 }
 
 // Função de configuração de interrupts
