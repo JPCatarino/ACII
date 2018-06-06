@@ -1,8 +1,20 @@
 // Made by: JPCatarino  Date: 06/06/2018
 // Este programa foi feito com o objetivo de mostrar como fazer a configuração básica de timers.
 // Aproveita-se também para rever outros conceitos como o ADC, etc. usados para demonstrar como usar timers
+// O exemplo usado foi exercicio numa das versões do 2ª teste prático de 2018
 
 #include <detpic32.h>
+
+// Int global para passar dados de função para função
+volatile int value = 0;
+
+// Configuração dos dispositivos IO utilizados (DISPLAYS)
+void config_IO(){
+    LATDbits.LATD6 = 1;
+    LATDbits.LATD5 = 0;
+    TRISB = TRISB & 0x00FF;
+    TRISD = TRISD & 0xFF9F;
+}
 
 // Função de configuração do timer
 void config_timers(void){
@@ -56,7 +68,7 @@ void config_interrupts(void){
 
     // Seguindo os mesmo passo para o timer3
     IPC3bits.T3IP = 2;
-    IEC0bits.T3IP = 1;
+    IEC0bits.T3IE = 1;
     IFS0bits.T3IF = 0;
 
     // Configuração dos interrupts da ADC
@@ -87,4 +99,71 @@ void config_adc(void)
     // This must the last command of the A/D
     // configuration sequence
 }
+
+// Funções de suporte
+
+void send2displays(unsigned char value)
+{
+    static char codes7S[]={0x3F, 0x06, 0x5b, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F,
+    0x6F, 0x77, 0x7C, 0x39, 0x5E, 0x79, 0x71};
+    static char displayFlag = 0;
+    unsigned int digit_low, digit_high;
+    digit_low = value & 0x0F;
+    digit_high = value >> 4;
+    if (displayFlag == 0)
+    {
+        LATDbits.LATD6=0;
+        LATB = (LATB & 0x00FF) | (codes7S[digit_low] << 8);
+        LATDbits.LATD5 = 1;
+    }
+    else
+    {
+        LATDbits.LATD5=0;
+        LATB = (LATB & 0x00FF) | (codes7S[digit_high] << 8);
+        LATDbits.LATD6 = 1;
+    }
+    displayFlag = !displayFlag;
+}
+
+
+unsigned char toBCD(unsigned char val)
+{
+    return ((val / 10) << 4) + (val % 10);
+}
+
+void main(void){
+    config_IO();
+    config_timers();
+    config_adc();
+    config_interrupts();
+    EnableInterrupts();
+
+    while(1);
+}
+
+// Interrupts handlers para os timers e para adc (para os vetores, ver PIC32 Family Data Sheet pg 74-76)
+
+void _int_(8) rsi_t2(void)
+{
+    // Este timer de 10Hz é usado para iniciar uma conversão da ADC 
+    AD1CON1bits.ASAM = 1;
+    IFS0bits.T2IF = 0;
+}
+
+void _int_(12) rsi_t3(void)
+{
+    // Este timer de 120 Hz é usado para mandar a informação para os displays
+    send2displays(toBCD(value));
+    IFS0bits.T3IF = 0;
+}
+
+void _int_(27) rsi_ADC(void)
+{
+    // O interrupt handler da ADC é usado para ir buscar os valores convertidos pelo módulo
+    // No teste no qual este exemplo foi baseado era pedido para fazer amostragem de 2 samples
+    // Por questões de simplificação aqui é usada só uma :)
+    value = ((ADC1BUF0)*99)/1023;
+    IFS1bits.AD1IF = 0;
+}
+
 
