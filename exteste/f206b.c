@@ -104,7 +104,7 @@ void main(void)
 
 void _int_(8) isr_T2(void)
 {
-    send2displays(toBCD(voltage));
+    send2displays(toBCD(temp));
     IFS0.T2IF = 0;
 }
 
@@ -116,6 +116,6 @@ void _int_(12) isr_t3(void)
 
 void _int_(27) isr_adc(void)
 {
-    voltage = ((ADC1BUF0)*70)/1023;
+    temp = ((ADC1BUF0)*70)/1023;
     IFS1bits.AD1IF = 0;
 }
