@@ -3,6 +3,11 @@
 // Aproveita-se também para rever outros conceitos como o ADC, etc. usados para demonstrar como usar timers
 // O exemplo usado foi exercicio numa das versões do 2ª teste prático de 2018
 
+// Enunciado : Apresenta nos displays um valor entre 0-99, usando 2 amostras da adc.
+//             Usa dois timers, um de 120hz, para os displays, e outro de 10hz, para conversão e amostragem.
+//             Configura também um PWM de freq 120Hz e 40% de duty cycle
+
+
 #include <detpic32.h>
 
 // Int global para passar dados de função para função
